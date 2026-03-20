@@ -53,8 +53,14 @@ module.exports = async function(req, res) {
     const parsed = JSON.parse(result.body);
 
     if (result.status !== 200) {
-      return res.status(result.status).json({ error: parsed.error?.message || 'OpenAI error' });
+      const errMsg = parsed.error?.message || JSON.stringify(parsed);
+      console.error('OpenAI error:', result.status, errMsg);
+      return res.status(result.status).json({ error: errMsg });
     }
+
+    // Debug: log the response shape
+    console.log('OpenAI response status:', result.status);
+    console.log('OpenAI output types:', (parsed.output || []).map(b => b.type));
 
     // Extract text from OpenAI responses API output
     const text = (parsed.output || [])
