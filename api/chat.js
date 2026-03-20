@@ -1,10 +1,7 @@
-const https  = require('https');
-const { BOT } = require('./config');
+const https = require('https');
+const BOT   = require('../bot.config');
 
-const SYSTEM_PROMPT = [
-  BOT.prompt,
-  BOT.knowledge ? `\n\n---\n\n## KNOWLEDGE BASE\n\n${BOT.knowledge}` : ''
-].join('');
+const SYSTEM_PROMPT = BOT.prompt + (BOT.knowledge ? `\n\n---\n\n## KNOWLEDGE BASE\n\n${BOT.knowledge}` : '');
 
 module.exports = async function(req, res) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -18,7 +15,7 @@ module.exports = async function(req, res) {
 
   const body = {
     model:      'claude-haiku-4-5-20251001',
-    max_tokens: 1000,
+    max_tokens: 1024,
     system:     SYSTEM_PROMPT,
     messages,
   };
@@ -57,14 +54,15 @@ module.exports = async function(req, res) {
       return res.status(result.status).json(parsed);
     }
 
-    // Extract only text blocks (web search results are handled server-side by Anthropic)
-    const textContent = (parsed.content || [])
-      .filter(block => block.type === 'text')
-      .map(block => block.text)
-      .join('\n');
+    // Collect all text blocks (web search results are resolved server-side by Anthropic)
+    const text = (parsed.content || [])
+      .filter(b => b.type === 'text')
+      .map(b => b.text)
+      .join('\n')
+      .trim();
 
     return res.status(200).json({
-      content: [{ type: 'text', text: textContent || 'Sorry, I could not generate a response.' }]
+      content: [{ type: 'text', text: text || 'I could not find an answer. Please try again.' }]
     });
 
   } catch (err) {
