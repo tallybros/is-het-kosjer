@@ -62,8 +62,7 @@ module.exports = async function(req, res) {
     name:     BOT.name,
     tagline:  BOT.tagline,
     avatar:   BOT.avatar,
-    starters: BOT.starters,
-webSearch: true
+    starters: BOT.starters
   });
 };
 
