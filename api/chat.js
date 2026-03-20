@@ -16,15 +16,12 @@ module.exports = async function(req, res) {
 
   const body = {
     model: MODEL,
-    messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
-      ...messages,
-    ],
+    instructions: SYSTEM_PROMPT,
+    input: messages,
   };
 
   if (BOT.webSearch) {
     body.tools = [{ type: 'web_search_preview' }];
-    body.tool_choice = 'required';
   }
 
   const payload = JSON.stringify(body);
