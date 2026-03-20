@@ -11,6 +11,7 @@ avatar: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAC3Q
   
   // --- Web search (set to true if the bot needs live internet access) ---
   webSearch: true,
+  model:     'gpt-4o',
 
   // --- Conversation starters (shown as chips, leave empty array to hide) ---
   starters: [
