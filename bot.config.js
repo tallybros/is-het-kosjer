@@ -13,7 +13,7 @@ avatar: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKAAAACgCAYAAACLz2ctAAC3Q
   webSearch: true,
   api: 'openai', 
   model: 'gpt-4o', 
-  credit: 'Prompted by Tally Brostowsky'
+  promptedBy: 'Tally Brostowsky'
 
   // --- Conversation starters (shown as chips, leave empty array to hide) ---
   starters: [
