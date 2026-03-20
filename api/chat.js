@@ -2,26 +2,29 @@ const https = require('https');
 const BOT   = require('../bot.config');
 
 const SYSTEM_PROMPT = BOT.prompt + (BOT.knowledge ? `\n\n---\n\n## KNOWLEDGE BASE\n\n${BOT.knowledge}` : '');
+const MODEL = BOT.model || 'gpt-4o-mini';
 
 module.exports = async function(req, res) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
 
-  const apiKey = process.env.ANTHROPIC_API_KEY;
-  if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY not set' });
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) return res.status(500).json({ error: 'OPENAI_API_KEY not set' });
 
   const messages = req.body && req.body.messages;
   if (!Array.isArray(messages) || messages.length === 0)
     return res.status(400).json({ error: 'messages array missing' });
 
   const body = {
-    model:      'claude-haiku-4-5-20251001',
-    max_tokens: 1024,
-    system:     SYSTEM_PROMPT,
-    messages,
+    model: MODEL,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      ...messages,
+    ],
   };
 
   if (BOT.webSearch) {
-    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+    body.tools = [{ type: 'web_search_preview' }];
+    body.tool_choice = 'required';
   }
 
   const payload = JSON.stringify(body);
@@ -29,14 +32,13 @@ module.exports = async function(req, res) {
   try {
     const result = await new Promise((resolve, reject) => {
       const request = https.request({
-        hostname: 'api.anthropic.com',
-        path:     '/v1/messages',
+        hostname: 'api.openai.com',
+        path:     '/v1/responses',
         method:   'POST',
         headers: {
-          'Content-Type':      'application/json',
-          'Content-Length':    Buffer.byteLength(payload),
-          'x-api-key':         apiKey,
-          'anthropic-version': '2023-06-01',
+          'Content-Type':  'application/json',
+          'Content-Length': Buffer.byteLength(payload),
+          'Authorization': `Bearer ${apiKey}`,
         },
       }, (response) => {
         let data = '';
@@ -51,13 +53,15 @@ module.exports = async function(req, res) {
     const parsed = JSON.parse(result.body);
 
     if (result.status !== 200) {
-      return res.status(result.status).json(parsed);
+      return res.status(result.status).json({ error: parsed.error?.message || 'OpenAI error' });
     }
 
-    // Collect all text blocks (web search results are resolved server-side by Anthropic)
-    const text = (parsed.content || [])
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
+    // Extract text from OpenAI responses API output
+    const text = (parsed.output || [])
+      .filter(b => b.type === 'message')
+      .flatMap(b => b.content || [])
+      .filter(c => c.type === 'output_text')
+      .map(c => c.text)
       .join('\n')
       .trim();
 
