@@ -6,7 +6,7 @@ module.exports = {
 
   // --- Identity ---
   name:    "Kosjer Bot",
-  tagline: "Check if a food product is kosher",
+  tagline: "Check if a food product is kosher based on NIK lijst",
   avatar:  "",   // paste base64 data URI here, e.g. "data:image/png;base64,..."
 
   // --- Web search (set to true if the bot needs live internet access) ---
