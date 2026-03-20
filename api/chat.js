@@ -32,8 +32,9 @@ function callAnthropic(apiKey, messages) {
       let data = '';
       res.on('data', c => { data += c; });
       res.on('end', () => {
-        const parsed = JSON.parse(data);
-        if (res.statusCode !== 200) throw new Error(parsed.error?.message || `Anthropic error ${res.statusCode}`);
+        let parsed;
+        try { parsed = JSON.parse(data); } catch(e) { return reject(new Error(`Anthropic error ${res.statusCode}: ${data.slice(0,200)}`)); }
+        if (res.statusCode !== 200) return reject(new Error(parsed.error?.message || `Anthropic error ${res.statusCode}`));
         const text = (parsed.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n').trim();
         resolve(text);
       });
@@ -69,8 +70,9 @@ function callOpenAI(apiKey, messages) {
       let data = '';
       res.on('data', c => { data += c; });
       res.on('end', () => {
-        const parsed = JSON.parse(data);
-        if (res.statusCode !== 200) throw new Error(parsed.error?.message || `OpenAI error ${res.statusCode}`);
+        let parsed;
+        try { parsed = JSON.parse(data); } catch(e) { return reject(new Error(`OpenAI error ${res.statusCode}: ${data.slice(0,200)}`)); }
+        if (res.statusCode !== 200) return reject(new Error(parsed.error?.message || `OpenAI error ${res.statusCode}`));
         const text = (parsed.output || [])
           .filter(b => b.type === 'message')
           .flatMap(b => b.content || [])
