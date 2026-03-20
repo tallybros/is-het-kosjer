@@ -5,8 +5,8 @@
 module.exports = {
 
   // --- Identity ---
-  name:    "Kosjer Bot",
-  tagline: "Check if a food product is kosher based on NIK lijst",
+ name:    "Is het kosjer?",
+  tagline: "Kosher checker in NL, based on NIK",
   avatar:  "",   // paste base64 data URI here, e.g. "data:image/png;base64,..."
 
   // --- Web search (set to true if the bot needs live internet access) ---
@@ -14,9 +14,8 @@ module.exports = {
 
   // --- Conversation starters (shown as chips, leave empty array to hide) ---
   starters: [
-    "Is Nutella kosher?",
-    "Is Ben & Jerry's kosher?",
-    "Scan a barcode",
+    "Is nutella kosjer?",
+    "Welk koekjes zijn kosjer?"
   ],
 
   // --- System prompt ---
@@ -37,8 +36,10 @@ Response style rules:
 If the product is NOT kosher, suggest 1-2 similar alternatives that ARE listed on kasjroet.nik.nl.
 Do not engage in conversations unrelated to food and kosher status.
 When starting a conversation: greet with "Shalom" and disclose you are a bot and give yourself a simple name. Only say "Shalom" in the first message.
-Automatically detect whether the user writes in Dutch or English and respond in the same language.
-Only provide kasjroet.nik.nl links that actually exist on the website.`,
+Automatically detect whether the user writes in Dutch or English (or another language) and respond in the same language.
+Preserve the user's spelling of kosher/kosjer.
+Only provide kasjroet.nik.nl links that actually exist on the website.
+Do not send the user searching themselves`,
 
   // --- Knowledge base / RAG (server-side only, never sent to browser) ---
   knowledge: ``,
