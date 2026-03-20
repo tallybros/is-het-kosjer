@@ -1,7 +1,10 @@
 const https  = require('https');
 const { BOT } = require('./config');
 
-const SYSTEM_PROMPT = [BOT.prompt, BOT.knowledge ? `\n\n---\n\n## KNOWLEDGE BASE\n\n${BOT.knowledge}` : ''].join('');
+const SYSTEM_PROMPT = [
+  BOT.prompt,
+  BOT.knowledge ? `\n\n---\n\n## KNOWLEDGE BASE\n\n${BOT.knowledge}` : ''
+].join('');
 
 module.exports = async function(req, res) {
   if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
@@ -13,12 +16,18 @@ module.exports = async function(req, res) {
   if (!Array.isArray(messages) || messages.length === 0)
     return res.status(400).json({ error: 'messages array missing' });
 
-  const payload = JSON.stringify({
+  const body = {
     model:      'claude-haiku-4-5-20251001',
     max_tokens: 1000,
     system:     SYSTEM_PROMPT,
     messages,
-  });
+  };
+
+  if (BOT.webSearch) {
+    body.tools = [{ type: 'web_search_20250305', name: 'web_search' }];
+  }
+
+  const payload = JSON.stringify(body);
 
   try {
     const result = await new Promise((resolve, reject) => {
@@ -27,9 +36,9 @@ module.exports = async function(req, res) {
         path:     '/v1/messages',
         method:   'POST',
         headers: {
-          'Content-Type':    'application/json',
-          'Content-Length':  Buffer.byteLength(payload),
-          'x-api-key':       apiKey,
+          'Content-Type':      'application/json',
+          'Content-Length':    Buffer.byteLength(payload),
+          'x-api-key':         apiKey,
           'anthropic-version': '2023-06-01',
         },
       }, (response) => {
@@ -42,7 +51,22 @@ module.exports = async function(req, res) {
       request.end();
     });
 
-    return res.status(result.status).json(JSON.parse(result.body));
+    const parsed = JSON.parse(result.body);
+
+    if (result.status !== 200) {
+      return res.status(result.status).json(parsed);
+    }
+
+    // Extract only text blocks (web search results are handled server-side by Anthropic)
+    const textContent = (parsed.content || [])
+      .filter(block => block.type === 'text')
+      .map(block => block.text)
+      .join('\n');
+
+    return res.status(200).json({
+      content: [{ type: 'text', text: textContent || 'Sorry, I could not generate a response.' }]
+    });
+
   } catch (err) {
     return res.status(500).json({ error: err.message });
   }
