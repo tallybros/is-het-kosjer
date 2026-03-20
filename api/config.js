@@ -7,5 +7,6 @@ module.exports = async function(req, res) {
     tagline:  BOT.tagline,
     avatar:   BOT.avatar   || '',
     starters: BOT.starters || [],
+    credit:   BOT.credit   || 'Powered by Claude',
   });
 };
