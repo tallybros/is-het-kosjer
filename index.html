@@ -518,7 +518,7 @@ async function send() {
     addMsg('bot', reply);
   } catch(e) {
     removeTyping();
-    addMsg('bot', 'Sorry, something went wrong. Please try again.');
+    addMsg('bot', 'Error: ' + e.message);
     history.pop();
   }
 
